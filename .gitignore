@@ -1,0 +1,19 @@
+# ── Secrets / local config (NEVER commit) ─────────────────────────────
+estiasis_ai_key.txt          # Anthropic API key
+estiasis_config.json         # POS endpoint + credentials
+
+# ── Per-table runtime state written by the server ─────────────────────
+draft_*.json                 # un-committed order drafts
+note_*.txt                   # waiter personal notes
+seqnames_*.json              # serving-course names
+billmeta_*.json              # split-bill names/state
+
+# ── Logs & backups ────────────────────────────────────────────────────
+estiasisweb_error.log
+*.log
+*.bak
+EstiasisWeb.bak_*.ps1
+
+# ── OS cruft ──────────────────────────────────────────────────────────
+Thumbs.db
+.DS_Store

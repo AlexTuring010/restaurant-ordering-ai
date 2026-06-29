@@ -1,0 +1,4 @@
+YOUR_ANTHROPIC_API_KEY_HERE
+# Copy this file to estiasis_ai_key.txt (gitignored) and paste your Anthropic API key on the
+# first line, OR skip the file entirely and set the ANTHROPIC_API_KEY environment variable.
+# The key is read server-side only and is never sent to the phone/browser.

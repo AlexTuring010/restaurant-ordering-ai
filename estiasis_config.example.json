@@ -1,0 +1,7 @@
+{
+  "_comment": "Copy this file to estiasis_config.json (gitignored) and fill in your values. The Estiasis WebApi uses IdentityServer4 with the resource-owner-password grant. 'Basic' is the HTTP Authorization header for the OAuth client: the word 'Basic' + a space + base64(clientId:clientSecret). 'User'/'Pass' are a POS operator login.",
+  "Eb": "http://127.0.0.1/wa_estiasis",
+  "Basic": "Basic <base64(clientId:clientSecret)>",
+  "User": "<pos-username>",
+  "Pass": "<pos-password>"
+}
