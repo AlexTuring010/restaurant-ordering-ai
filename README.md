@@ -2,6 +2,8 @@
 
 A phone-friendly **waiter ordering app built on top of an existing restaurant POS** ([Estiasis](https://www.witec.gr/) by Witec). A single self-contained **PowerShell** HTTP server runs on a machine on the restaurant LAN and serves an installable **iPhone PWA** — tables, split bills, drafts, server-side printing — plus an **AI feature that turns a free-text order note into the exact menu items**, ready to send to the kitchen.
 
+**Demo: [watch the app in action on LinkedIn](https://www.linkedin.com/posts/alex-gkiafis_this-summer-ive-been-working-as-a-waiter-ugcPost-7476927220758822912-BtQk)**
+
 It does **not** replace or migrate anything: it talks to the POS's own Web API, so the existing desktop system keeps working unchanged.
 
 The app UI is **in Greek** (its users are Greek waiters); this README is in English for anyone landing on the repo from outside.
