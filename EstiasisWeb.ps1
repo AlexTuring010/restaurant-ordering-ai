@@ -501,7 +501,7 @@ $HTML = @'
  function usedMaxLevel(){ var m=1; savedLines().forEach(function(l){ if(!l.extraOf_ID){ var v=Number(l.courseSeq)||1; if(v>m)m=v; } }); (CUR.pending||[]).forEach(function(l){ var v=Number(l.CourseSeq)||1; if(v>m)m=v; }); (CUR.notes||[]).forEach(function(n){ var v=Number(n.seq)||1; if(v>m)m=v; }); return m; }
  function displayMax(){ return Math.max(usedMaxLevel(), CUR.level||1, CUR.maxLevel||1); }
  function selLevel(){ if(!CUR.sel)return CUR.level||1; if(CUR.sel.kind==='note'){ var n=CUR.notes&&CUR.notes[CUR.sel.ref]; return n?(Number(n.seq)||1):(CUR.level||1); } if(CUR.sel.kind==='p'){ var l=findPending(CUR.sel.ref); return l?(Number(l.CourseSeq)||1):(CUR.level||1); } var s=savedLines().filter(function(x){return x.orderLine_ID===CUR.sel.ref;})[0]; return s?(Number(s.courseSeq)||1):(CUR.level||1); }
- function setLevel(n){ CUR.level=n; renderPlates(CUR.order); }
+ function setLevel(n){ CUR.level=n; CUR.msel=[]; renderPlates(CUR.order); }
  function deleteLevelConfirm(n){ confirmDlg(L.seqDelConfirm, function(){ deleteLevel(n); }); }
  function deleteLevel(n){ var map=function(L){ L=Number(L)||1; if(L<n)return L; if(L===n)return (n>1?n-1:1); return L-1; };
    var applyLocal=function(){
