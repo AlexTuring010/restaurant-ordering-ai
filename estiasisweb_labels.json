@@ -50,5 +50,6 @@
   "billDelete": "Διαγραφή λογαριασμού",
   "billDelConfirm": "Τι να γίνουν τα πιάτα;",
   "billDelDishes": "Διαγραφή και των πιάτων",
+  "billDelDishesConfirm": "Σίγουρα να διαγραφούν τα πιάτα;",
   "billXfer": "Μεταφορά σε"
 }
