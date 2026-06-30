@@ -465,7 +465,7 @@ $HTML = @'
    var billsActive=(maxBill>=1);
    var multi=(maxL>=2);
    var showHdr=multi;
-   if(mselOn()){ qb.style.display='flex'; document.getElementById('qedit').style.display='none'; document.getElementById('qplus').style.display=''; document.getElementById('qminus').style.display=''; document.getElementById('qdel').style.display='none'; document.getElementById('qai').style.display='none'; document.getElementById('qup').style.display='none'; document.getElementById('qdown').style.display='none'; document.getElementById('qbill').style.display=billsActive?'block':'none'; }
+   if(mselOn()){ var msSame=mselSameLevel(); qb.style.display='flex'; document.getElementById('qedit').style.display='none'; document.getElementById('qplus').style.display=''; document.getElementById('qminus').style.display=''; document.getElementById('qdel').style.display='none'; document.getElementById('qai').style.display='none'; document.getElementById('qup').style.display=(multi&&msSame)?'block':'none'; document.getElementById('qdown').style.display=(multi&&msSame)?'block':'none'; document.getElementById('qbill').style.display=billsActive?'block':'none'; }
    else if(sr){ qb.style.display='flex'; document.getElementById('qedit').style.display='block'; var isN=(sr.k==='note'); document.getElementById('qplus').style.display=isN?'none':''; document.getElementById('qminus').style.display=isN?'none':''; document.getElementById('qdel').style.display=isN?'block':'none'; document.getElementById('qai').style.display=isN?'block':'none'; document.getElementById('qup').style.display=multi?'block':'none'; document.getElementById('qdown').style.display=multi?'block':'none'; document.getElementById('qbill').style.display=billsActive?'block':'none'; } else { qb.style.display='none'; }
    function rowHtml(r){
      if(r.k==='note'){ var ni=r.ni; var ncls=(r.n&&r.n.ok)?'':' ndraft'; return '<div class="pl note'+ncls+((CUR.sel&&CUR.sel.kind==='note'&&CUR.sel.ref===ni)?' sel':'')+'" onclick="selectRow(\'note\','+ni+')"><div class="ntext">'+esc(r.n.t)+'</div></div>'; }
@@ -527,7 +527,7 @@ $HTML = @'
  function openSeqName(n){ window.LNIDX=n; document.getElementById('lnsh_title').textContent=L.seqHeader+' '+n; document.getElementById('lnsh_text').value=(CUR.lnames&&CUR.lnames[n]!=null)?CUR.lnames[n]:''; document.getElementById('lnsheet').style.display='flex'; setTimeout(function(){ try{document.getElementById('lnsh_text').focus();}catch(e){} },60); }
  function closeSeqName(){ document.getElementById('lnsheet').style.display='none'; }
  function saveSeqName(){ var n=window.LNIDX; var v=(document.getElementById('lnsh_text').value||'').trim(); if(!CUR.lnames)CUR.lnames={}; if(v)CUR.lnames[n]=v; else delete CUR.lnames[n]; closeSeqName(); persistSeqNames(); renderPlates(CUR.order); }
- function moveSeq(dir){ var r=selRow(); if(!r){ flash(L.selectItem); return; } var cur=(r.k==='note')?(Number(CUR.notes[r.i].seq)||1):((r.k==='p')?(Number(r.l.CourseSeq)||1):(Number(r.l.courseSeq)||1)); var nl=cur+dir; if(nl<1)nl=1; var hi=displayMax(); if(nl>hi)nl=hi; if(nl===cur)return;
+ function moveSeq(dir){ if(mselOn()){ var curm=mselSameLevel(); if(!curm)return; var nlm=curm+dir; if(nlm<1)nlm=1; var him=displayMax(); if(nlm>him)nlm=him; if(nlm===curm)return; var rows=actionRows(); var committedS=[]; var chS=false; rows.forEach(function(r){ if(!r||r.k==='note')return; if(r.k==='p'){ r.l.CourseSeq=nlm; chS=true; } else { committedS.push(r.l); } }); CUR.level=nlm; if(chS)saveDraft(); if(committedS.length){ changeCommittedSeqMany(committedS,nlm); } else { renderPlates(CUR.order); } return; } var r=selRow(); if(!r){ flash(L.selectItem); return; } var cur=(r.k==='note')?(Number(CUR.notes[r.i].seq)||1):((r.k==='p')?(Number(r.l.CourseSeq)||1):(Number(r.l.courseSeq)||1)); var nl=cur+dir; if(nl<1)nl=1; var hi=displayMax(); if(nl>hi)nl=hi; if(nl===cur)return;
    if(r.k==='note'){ CUR.notes[r.i].seq=nl; CUR.level=nl; saveNotes(); renderPlates(CUR.order); }
    else if(r.k==='p'){ r.l.CourseSeq=nl; CUR.level=nl; saveDraft(); renderPlates(CUR.order); }
    else { changeCommittedSeq(r.l,nl); } }
@@ -541,6 +541,13 @@ $HTML = @'
      .then(function(){ return fetch('/api/order?table='+CUR.id).then(function(x){return x.json();}); })
      .then(function(o){ CUR.order=o; CUR.level=newSeq; CUR._osig=orderSig(o); renderPlates(o); })
      .catch(function(e){ CUR.level=prev; alertDlg(L.error+': '+e); renderPlates(CUR.order); }); }
+ function changeCommittedSeqMany(saveds,newSeq){ var ord=CUR.order; var lines=saveds.map(function(s){ var ln=mkModified(s,Number(s.price)||0,(s.comments||null)); ln.CourseSeq=newSeq; return ln; }); var order={Order_ID:ord.order_ID,TradingPeriod_ID:-1,Employee_ID:0,ServiceArea_ID:ord.serviceArea_ID,Table_ID:CUR.id,Guests:0,PriceList_ID:PL.defaultPriceList,Customer_ID:null,CustomerName:null,CustomerDiscount:null,TimeOpen:null,TimeBilled:null,TimePayed:null,Comments:null,LastChanged:null,ExternalId:null,OrderProducts:lines,OrdersOrder:[],TrackingState:0,EntityIdentifier:'00000000-0000-0000-0000-000000000000'};
+   flash(L.saving);
+   fetch('/api/save?pricelistId='+PL.defaultPriceList,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify([order])})
+     .then(function(rr){ if(!rr.ok) throw new Error('save '+rr.status); return rr.text(); })
+     .then(function(){ return fetch('/api/order?table='+CUR.id).then(function(x){return x.json();}); })
+     .then(function(o){ CUR.order=o; CUR._osig=orderSig(o); renderPlates(o); })
+     .catch(function(e){ alertDlg(L.error+': '+e); renderPlates(CUR.order); }); }
  function usedMaxBill(){ var m=0; savedLines().forEach(function(l){ if(!l.extraOf_ID){ var v=Number(l.billNumber)||0; if(v>m)m=v; } }); (CUR.pending||[]).forEach(function(l){ var v=Number(l.BillNumber)||0; if(v>m)m=v; }); (CUR.notes||[]).forEach(function(n){ var v=Number(n.bill)||0; if(v>m)m=v; }); return m; }
  function billLabel(b){ var nm=(CUR.bnames&&CUR.bnames[b]!=null)?(''+CUR.bnames[b]):''; return nm?nm:((b===0)?L.billMain:(L.billHeader+' '+b)); }
  function addBill(){ CUR.maxBill=Math.max(usedMaxBill(),CUR.maxBill||0)+1; CUR.sel=null; CUR.billOk=false; persistBillMeta(); renderPlates(CUR.order); }
@@ -642,6 +649,7 @@ $HTML = @'
  function isSelRow(k,ref){ if(CUR.sel&&CUR.sel.kind===k&&CUR.sel.ref===ref)return true; return mselIndex(k,ref)>=0; }
  function resolveSel(s){ if(s.k==='p'){ var l=findPending(s.ref); return l?{k:'p',l:l}:null; } if(s.k==='c'){ var l=savedLines().filter(function(x){return x.orderLine_ID===s.ref;})[0]; return l?{k:'c',l:l}:null; } return null; }
  function actionRows(){ if(mselOn()){ var out=[]; CUR.msel.forEach(function(s){ var r=resolveSel(s); if(r)out.push(r); }); return out; } var r=selRow(); return r?[r]:[]; }
+ function mselSameLevel(){ if(!mselOn())return 0; var lv=null; var rows=actionRows(); for(var i=0;i<rows.length;i++){ var r=rows[i]; if(!r||r.k==='note')continue; var v=(r.k==='p')?(Number(r.l.CourseSeq)||1):(Number(r.l.courseSeq)||1); if(lv===null)lv=v; else if(lv!==v)return 0; } return lv||0; }
  function savedLines(){ return (CUR.order&&CUR.order.orderProducts)?CUR.order.orderProducts:[]; }
  function findPending(id){ return (CUR.pending||[]).filter(function(l){return l._id===id;})[0]; }
  function removePending(id){ CUR.pending=(CUR.pending||[]).filter(function(l){return l._id!==id;}); if(CUR.sel&&CUR.sel.kind==='p'&&CUR.sel.ref===id)CUR.sel=null; }
