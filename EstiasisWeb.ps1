@@ -465,7 +465,7 @@ $HTML = @'
    var billsActive=(maxBill>=1);
    var multi=(maxL>=2);
    var showHdr=multi;
-   if(mselOn()){ var msSame=mselSameLevel(); qb.style.display='flex'; document.getElementById('qedit').style.display='none'; document.getElementById('qplus').style.display=''; document.getElementById('qminus').style.display=''; document.getElementById('qdel').style.display='none'; document.getElementById('qai').style.display='none'; document.getElementById('qup').style.display=(multi&&msSame)?'block':'none'; document.getElementById('qdown').style.display=(multi&&msSame)?'block':'none'; document.getElementById('qbill').style.display=billsActive?'block':'none'; }
+   if(mselOn()){ var msSame=mselSameLevel(); var showUD=(multi&&msSame); if(showUD||billsActive){ qb.style.display='flex'; document.getElementById('qedit').style.display='none'; document.getElementById('qplus').style.display='none'; document.getElementById('qminus').style.display='none'; document.getElementById('qdel').style.display='none'; document.getElementById('qai').style.display='none'; document.getElementById('qup').style.display=showUD?'block':'none'; document.getElementById('qdown').style.display=showUD?'block':'none'; document.getElementById('qbill').style.display=billsActive?'block':'none'; } else { qb.style.display='none'; } }
    else if(sr){ qb.style.display='flex'; document.getElementById('qedit').style.display='block'; var isN=(sr.k==='note'); document.getElementById('qplus').style.display=isN?'none':''; document.getElementById('qminus').style.display=isN?'none':''; document.getElementById('qdel').style.display=isN?'block':'none'; document.getElementById('qai').style.display=isN?'block':'none'; document.getElementById('qup').style.display=multi?'block':'none'; document.getElementById('qdown').style.display=multi?'block':'none'; document.getElementById('qbill').style.display=billsActive?'block':'none'; } else { qb.style.display='none'; }
    function rowHtml(r){
      if(r.k==='note'){ var ni=r.ni; var ncls=(r.n&&r.n.ok)?'':' ndraft'; return '<div class="pl note'+ncls+((CUR.sel&&CUR.sel.kind==='note'&&CUR.sel.ref===ni)?' sel':'')+'" onclick="selectRow(\'note\','+ni+')"><div class="ntext">'+esc(r.n.t)+'</div></div>'; }
@@ -484,7 +484,7 @@ $HTML = @'
    var h='';
    if(billsActive){
      var btot=0; rows.forEach(function(r){ if(r.bill===CUR.bill){ if(r.k==='c'){ btot+=r.edit?(Number(r.edit.Value)||0):(Number(r.l.value)||0); } else if(r.k==='p'){ btot+=Number(r.l.Value)||0; } } });
-     var bnm=(CUR.bnames&&CUR.bnames[CUR.bill]!=null)?(''+CUR.bnames[CUR.bill]):''; var blbl=bnm?bnm:((CUR.bill===0)?L.billMain:(L.billHeader+' '+CUR.bill));
+     var blbl=billLabel(CUR.bill);
      h+='<div class="billbar"><span class="billnav" onclick="prevBill()">&#9664;</span><span class="billlbl">'+esc(blbl)+'<span class="billdel" onclick="event.stopPropagation();deleteBillStart('+CUR.bill+')">&#128465;</span><span class="billedit" onclick="event.stopPropagation();openBillEdit('+CUR.bill+')">&#9998;</span></span><span class="billtot">'+money(btot)+'</span><span class="billnav" onclick="nextBill()">&#9654;</span></div>';
      rows=rows.filter(function(r){ return r.bill===CUR.bill; });
    }
@@ -549,7 +549,7 @@ $HTML = @'
      .then(function(o){ CUR.order=o; CUR._osig=orderSig(o); renderPlates(o); })
      .catch(function(e){ alertDlg(L.error+': '+e); renderPlates(CUR.order); }); }
  function usedMaxBill(){ var m=0; savedLines().forEach(function(l){ if(!l.extraOf_ID){ var v=Number(l.billNumber)||0; if(v>m)m=v; } }); (CUR.pending||[]).forEach(function(l){ var v=Number(l.BillNumber)||0; if(v>m)m=v; }); (CUR.notes||[]).forEach(function(n){ var v=Number(n.bill)||0; if(v>m)m=v; }); return m; }
- function billLabel(b){ var nm=(CUR.bnames&&CUR.bnames[b]!=null)?(''+CUR.bnames[b]):''; return nm?nm:((b===0)?L.billMain:(L.billHeader+' '+b)); }
+ function billLabel(b){ var nm=(CUR.bnames&&CUR.bnames[b]!=null)?(''+CUR.bnames[b]):''; return nm?nm:(L.billHeader+' '+(b+1)); }
  function addBill(){ CUR.maxBill=Math.max(usedMaxBill(),CUR.maxBill||0)+1; CUR.sel=null; CUR.billOk=false; persistBillMeta(); renderPlates(CUR.order); }
  function prevBill(){ var mx=Math.max(usedMaxBill(),CUR.maxBill||0); var b=(CUR.bill||0)-1; if(b<0)b=mx; CUR.bill=b; CUR.sel=null; CUR.msel=[]; renderPlates(CUR.order); }
  function nextBill(){ var mx=Math.max(usedMaxBill(),CUR.maxBill||0); var b=(CUR.bill||0)+1; if(b>mx)b=0; CUR.bill=b; CUR.sel=null; CUR.msel=[]; renderPlates(CUR.order); }
